@@ -1,7 +1,7 @@
 import pathlib
 
 
-class FBXPeripheral(object):
+class FBXPeripheral:
     def __init__(self, path: pathlib.Path):
         self.path = path
 

@@ -5,7 +5,7 @@ from pyfbx import FBXObject, double, FBXTime, char
 from pyfbx.exceptions import FBXException
 
 
-class FBXColor(object):
+class FBXColor:
     def __init__(self, r: double, g: double, b: double, a: double):
         self.r = r
         self.g = g

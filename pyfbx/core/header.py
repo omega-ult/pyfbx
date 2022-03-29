@@ -14,7 +14,7 @@ class MetaData(FBXNode):
         self.revision = revision
         self.comment = comment
 
-        super().__init__(None, "MetaData")
+        super().__init__("MetaData")
 
     def __eq__(self, other):
         return isinstance(other, MetaData) and \
@@ -49,7 +49,7 @@ class CreationTimeStamp(FBXNode):
         self.second = second
         self.millisecond = millisecond
 
-        super().__init__(None, "CreationTimeStamp")
+        super().__init__("CreationTimeStamp")
 
     def __eq__(self, other):
         return isinstance(other, CreationTimeStamp) and \
@@ -76,7 +76,7 @@ class FBXDocumentInfo(FBXNode):
         return [self.name]
 
     def __init__(self):
-        self._name = "SceneInfo"
+        super().__init__("SceneInfo")
 
     type = field(str, alias='Type')
     version = field(int, alias='Version')
@@ -86,6 +86,9 @@ class FBXDocumentInfo(FBXNode):
 
 @schema
 class FBXHeaderExtension(FBXNode):
+    def __init__(self):
+        super().__init__("FBXHeaderExtension")
+
     fbx_header_version = field(int, alias='FBXHeaderVersion')
     fbx_version = field(int, alias='FBXVersion')
     encryption_type = field(int, alias='EncryptionType')

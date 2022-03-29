@@ -1,3 +1,4 @@
+from ctypes import resize
 from pybran.decorators import schema, field
 
 from .header import *
@@ -14,11 +15,12 @@ class GlobalSettings(FBXNode):
 @schema
 class Document(FBXNode):
     def __init__(self, uid: long = None, cls: str = "", name: str = None, properties70: Properties70 = None, root_node: int = None):
-        if name is None:
-            name = ""
+        super().__init__("Document")
+        # if name is None:
+        #     name = ""
 
-        if not name:
-            pass  # TODO: Raise Exception
+        # if not name:
+        #     pass  # TODO: Raise Exception
 
         if uid is None:
             uid = 0  # TODO: Generate new UUID
@@ -29,12 +31,17 @@ class Document(FBXNode):
         self.properties70 = Properties70() if properties70 is None else properties70
         self.root_node = 0 if root_node is None else root_node
 
-        self.name = "Document"
+        # self.name = "Document"
 
     def __value__(self):
         return [self.uid, self.cls, self.name]
 
-    _value = property(fget=__value__)
+    def __set__(self, value):
+        self.uid = value[0]
+        self.cls = value[1],
+        self.name = value[2]
+    
+    _value = property(fget=__value__, fset=__set__)
 
     properties70 = field(Properties70, alias='Properties70')
     root_node = field(int, alias='RootNode')
@@ -45,17 +52,14 @@ class Documents(list, FBXNode):
     def __init__(self, documents: list = None):
         if documents is None:
             documents = []
+        FBXNode.__init__(self, "Documents")
 
-        super().__init__(documents)
-        self.name = "Documents"
 
     def __len__(self):
         return super().__len__()
 
-    count = field(
-        property(fget=__len__),
-        alias='Count'
-    )
+    count = field(int, alias='Count')
+    documents = field(Document, alias="Documents")
 
 
 

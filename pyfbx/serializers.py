@@ -8,6 +8,7 @@ from pybran.exceptions import BranSerializerException
 from pybran.serializers import Serializer
 
 from pyfbx import FBXFile
+from pyfbx.core.header import FBXHeaderExtension
 from pyfbx.exceptions import FBXSerializationException, FBXValidationException
 from pyfbx.core.common import FBXNode, FBXArray, long, double, short, char, FBXArrayEncoding
 
@@ -36,7 +37,6 @@ struct_formatters = {
     long: 'q',
     double: 'd',
 }
-
 
 class PrimitiveSerializer(Serializer):
     def serialize(self, loader, obj, **kwargs):
@@ -271,8 +271,12 @@ class FBXNodeSerializer(Serializer):
         return serialized
 
     def deserialize(self, loader, cls, data, **kwargs):
+        # print("hooooo")
+        # print(cls)
         offset, properties, properties_len = self.deserialize_node_body(loader, data, **kwargs)
+        # print(offset, properties, properties_len)
         name = self.deserialize_name(data, **kwargs)
+        # print(name)
 
         cls = type_registry.get(name) if type_registry.contains(name) else cls
 
@@ -285,6 +289,7 @@ class FBXNodeSerializer(Serializer):
 
         node = cls()
         node._value = values
+        print(name)
         node._name = name
 
         while offset - data.tell() > 0:
@@ -321,7 +326,6 @@ class FBXNodeSerializer(Serializer):
             child_name = child._name
         else:
             child_name = node_definition.aliases.get(child._name)
-
         setattr(node, child_name, child)
 
     def deserialize_property(self, loader, data, **kwargs):
@@ -336,9 +340,9 @@ class FBXNodeSerializer(Serializer):
         return real_value
 
     def deserialize_node_body(self, loader, data, **kwargs):
-        offset = loader.deserialize(data, long, **kwargs)
-        properties = loader.deserialize(data, long, **kwargs)
-        properties_len = loader.deserialize(data, long, **kwargs)
+        offset = loader.deserialize(data, int, **kwargs)
+        properties = loader.deserialize(data, int, **kwargs)
+        properties_len = loader.deserialize(data, int, **kwargs)
 
         return offset, properties, properties_len
 
@@ -353,8 +357,11 @@ class FBXNodeSerializer(Serializer):
     def deserialize_name(self, data, **kwargs):
         try:
             length = struct.unpack('B', data.read(1))[0]
-
-            return struct.unpack(f"{length}s", data.read(length))[0].decode('utf-8')
+            print (length)
+            read_bytes = data.read(length)
+            read_str = struct.unpack(f"{length}s", read_bytes)
+            print (read_str)
+            return read_str[0].decode('utf-8')
         except struct.error as e:
             raise FBXSerializationException("Unable to parse name from data", data.read(), e)
 
@@ -387,7 +394,7 @@ class FBXFileSerializer(FBXNodeSerializer):
         serialized += loader.serialize(obj.fbx_header_extension.fbx_version, ignore_prefix=True)
         serialized += self.serialize_children(loader, obj, **kwargs)
 
-        serialized += b'\x00' * self.EMPTY_NODE_SIZE * 7
+        serialized += b'\x00' * self.EMPTY_NODE_SIZE * 8
 
         return serialized
 
@@ -399,20 +406,20 @@ class FBXFileSerializer(FBXNodeSerializer):
                                          meta_header + data.read())
 
         header_version = loader.deserialize(data, int, **kwargs)
-
-        if hasattr(data, "name") and data._name:
+        if hasattr(data, "_name") and data._name:
             file_size = os.path.getsize(data._name)
         else:
             data.read()
             file_size = data.tell()
-            data.seek(0)
+            data.seek(27)
 
         file = FBXFile()
-        while file_size - data.tell() > self.EMPTY_NODE_SIZE * 7:
-            try:
-                child = self.deserialize_child(loader, data, **kwargs)
-                self.add_child(file, child)
-            except Exception as e:
-                raise FBXSerializationException("Unable to parse FBX File from data", data.read(), e)
+        while file_size - data.tell() > self.EMPTY_NODE_SIZE * 8:
+            # try:
+            print("reaching:", file_size - data.tell())
+            child = self.deserialize_child(loader, data, **kwargs)
+            self.add_child(file, child)
+            # except Exception as e:
+            #     raise FBXSerializationException("Unable to parse FBX File from data", data.read(), e)
 
         return file

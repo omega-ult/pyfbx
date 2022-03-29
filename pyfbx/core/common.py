@@ -94,7 +94,7 @@ class FBXPropertyFlags(enum.IntEnum):
     FLAG_COUNT = 23
 
 
-class FBXProperty(object):
+class FBXProperty:
     def __init__(self, name: str = "", label: str = "", value: any = None,
                  flags: FBXPropertyFlags = FBXPropertyFlags.NONE):
         self.name = name
@@ -142,7 +142,7 @@ class FBXObject(FBXEmitter):
     __properties__ = dict()
 
     def __init__(self, name: str = ""):
-        super().__init__()
+        super().__init__(name)
 
         self.name = name
 
@@ -182,10 +182,11 @@ class FBXObject(FBXEmitter):
 class FBXNode(FBXObject):
     # TODO: Profile this and see how slow it is, probably more efficient to directly check each value
     def __eq__(self, other):
-        return self._name == other.name
+        return self.name == other.name
 
     def __init__(self, name=""):
-        self._name = name
+        super().__init__(name)
+        # self._name = name
 
 
 class FBXTimeMode(enum.IntEnum):
@@ -210,7 +211,7 @@ class FBXTimeMode(enum.IntEnum):
     MODES_COUNT = 18
 
 
-class FBXTime(object):
+class FBXTime:
     def __init__(self, hour: int = 0, minute: int = 0, second: int = 0, frame: int = 0, field: int = 0,
                  time_mode: FBXTimeMode = FBXTimeMode.DEFAULT_MODE):
         self.hour = hour
@@ -264,9 +265,10 @@ class BoolArray(FBXArray):
 @schema
 class Properties70(set, FBXObject):
     def __init__(self, *properties):
-        super().__init__(*properties)
+        set.__init__(self, *properties)
+        FBXObject.__init__(self, "Properties70")
 
-        self.name = "Properties70"
+        # self.name = 
 
 
 @schema
@@ -307,13 +309,13 @@ class PropertyTemplate(FBXNode):
         return [self.name]
 
     def __init__(self, name: str = "", properties70: Properties70 = None):
+        super().__init__( "PropertyTemplate")
         if properties70 is None:
             properties70 = Properties70()
-
         self.name = name
         self.properties70 = properties70
 
-        self._name = "PropertyTemplate"
+
 
     def __eq__(self, other):
         return isinstance(other, PropertyTemplate) and \

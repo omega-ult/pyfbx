@@ -12,7 +12,7 @@ logger = logging.getLogger('root')
 
 if __name__ == "__main__":
     try:
-        node = loader.read("C:\\Users\\steph\\Downloads\\Shoved Reaction With Spin (2).fbx", FBXFile)
+        node = loader.read("./brainstem.fbx", FBXFile)
 
         print(node)
 

@@ -9,7 +9,7 @@ class FBXEventType(enum.IntEnum):
     COUNT = 2
 
 
-class FBXEvent(object):
+class FBXEvent:
     def __init__(self, type_id: FBXEventType):
         self.type_id = type_id
 
@@ -18,7 +18,7 @@ class FBXEvent(object):
         return self.__class__.__name__
 
 
-class FBXEventHandler(object):
+class FBXEventHandler:
     def __init__(self):
         pass
 
